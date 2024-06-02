@@ -3,30 +3,28 @@ cmake_minimum_required(VERSION 3.21.1)
 option(LINK_INSIGHT "Link Qt Insight Tracker library" ON)
 option(BUILD_QDS_COMPONENTS "Build design studio components" ON)
 
+set(CMAKE_INSTALL_PREFIX "~/.local/lib" CACHE PATH "Install path prefix, prepended onto install directories.")
+set(CMAKE_TOOLCHAIN_FILE $ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
+set(CMAKE_PREFIX_PATH $ENV{VCPKG_ROOT}/installed/x64-linux)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
 project(chatRoomApp LANGUAGES CXX)
 
-set(CMAKE_AUTOMOC ON)
+set(CMAKE_CXX_STANDARD 17)
 
-find_package(Qt6 6.2 REQUIRED COMPONENTS Core Gui Qml Quick)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_definitions(LN_DEBUG)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast")
+endif ()
 
-if (Qt6_VERSION VERSION_GREATER_EQUAL 6.3)
-    qt_standard_project_setup()
-endif()
+include_directories(include)
 
-qt_add_executable(chatRoomApp src/main.cpp)
-
-qt_add_resources(chatRoomApp "configuration"
-    PREFIX "/"
-    FILES
-        qtquickcontrols2.conf
-)
-
-target_link_libraries(chatRoomApp PRIVATE
-    Qt6::Core
-    Qt6::Gui
-    Qt6::Qml
-    Qt6::Quick
-)
+add_subdirectory(src)
 
 set(QT_QML_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/qml)
 set(QML_IMPORT_PATH ${QT_QML_OUTPUT_DIRECTORY}
